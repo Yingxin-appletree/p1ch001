@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>小朋友写字练习 · 笔顺GIF + 手写田字格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击灰层 */
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0f2fe 0%, #fef9c3 50%, #fff7ed 100%);
+            min-height: 100vh;
+            font-family: '楷体', 'KaiTi', '华文楷体', 'STKaiti', '微软雅黑', sans-serif;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-container {
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* 头部卡片 - 移动端优化 */
+        .header-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 20px -8px rgba(2, 84, 98, 0.2);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .header-tag {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e4b7a;
+            font-weight: 600;
+            font-size: 0.7rem;
+            padding: 5px 14px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1a3b4f;
+            line-height: 1.25;
+        }
+
+        .header-sub {
+            font-size: 0.9rem;
+            color: #3a5e6f;
+            margin-top: 8px;
+        }
+
+        .header-right {
+            background: #e6f2f9;
+            border-radius: 20px;
+            padding: 12px 20px;
+            display: inline-block;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #0a3a4e;
+            margin-top: 14px;
+            width: 100%;
+            text-align: center;
+        }
+        .header-right span {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        /* 三列布局 - 移动端自动单列 */
+        .three-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 1024px) {
+            .three-grid {
+                grid-template-columns: 300px 1fr 1fr;
+                gap: 24px;
+            }
+        }
+
+        /* 通用卡片样式 */
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 12px 24px -12px rgba(0, 50, 60, 0.2);
+            border: 1px solid #f0f4fa;
+        }
+
+        /* 左侧字卡 - 移动端优化折叠面板 */
+        .char-sidebar .section-tag {
+            background: #c7e2f2;
+            color: #11698c;
+        }
+        .group-container {
+            margin-top: 16px;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .group {
+            margin-bottom: 14px;
+            border-radius: 20px;
+            background: #f8fafc;
+            border: 1px solid #dee7f0;
+            overflow: hidden;
+        }
+        .group-header {
+            background: #e4f0f9;
+            padding: 14px 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #2b5e7c;
+            font-size: 1.1rem;
+            transition: background 0.15s;
+            border-bottom: 1px solid #c9ddec;
+            min-height: 52px; /* 加大点击区域 */
+            touch-action: manipulation; /* 优化触摸响应 */
+        }
+        .group-header:active {
+            background: #d0e3f0;
+        }
+        .group-title {
+            font-size: 1.1rem;
+            pointer-events: none; /* 让点击事件完全由父容器处理 */
+        }
+        .group-icon {
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+            pointer-events: none;
+        }
+        .group.expanded .group-icon {
+            transform: rotate(90deg);
+        }
+        .char-grid {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px;
+        }
+        .group.expanded .char-grid {
+            display: grid;
+        }
+        /* 汉字按钮 - 移动端大点击区域 */
+        .char-btn {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 28px;
+            padding: 14px 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 3px 0 #cbd5e1;
+            transform: translateY(0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 72px;
+            touch-action: manipulation;
+        }
+        .char-btn.active {
+            background: #0ea5e9;
+            border-color: #0284c7;
+            color: white;
+            box-shadow: 0 3px 0 #0369a1;
+        }
+        .char-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #cbd5e1;
+        }
+
+        /* GIF 卡片区域 */
+        .gif-card .section-tag {
+            background: #fed7aa;
+            color: #9a4d0e;
+        }
+        .gif-display {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 12px;
+            margin: 16px 0 14px;
+        }
+        .gif-box {
+            aspect-ratio: 1/1;
+            background: white;
+            border-radius: 20px;
+            border: 2px dashed #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .gif-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .fallback-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #64748b;
+            padding: 16px;
+            text-align: center;
+        }
+        .fallback-char {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #cbd5e1;
+        }
+        .tip-banner {
+            background: #fffbeb;
+            border-radius: 18px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        /* 右侧画板卡片 */
+        .board-card .section-tag {
+            background: #d1fae5;
+            color: #0b6e4f;
+        }
+        .stats {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        /* 按钮移动端增大点击区域 */
+        .btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: 0.1s;
+            font-size: 1rem;
+            touch-action: manipulation;
+            flex: 1 0 auto;
+            text-align: center;
+            min-width: 70px;
+        }
+        .btn-primary {
+            background: #0ea5e9;
+            border-color: #0284c7;
+            color: white;
+            box-shadow: 0 3px 0 #0369a1;
+        }
+        .btn-primary:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0369a1;
+        }
+        .btn-active {
+            background: #e6f0fa;
+            border-color: #7bb2e0;
+            color: #0369a1;
+        }
+        .canvas-wrapper {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 12px;
+            border: 1px solid #d1d9e6;
+            display: flex;
+            justify-content: center;
+        }
+        #practiceCanvas {
+            width: 100%;
+            max-width: 520px;
+            aspect-ratio: 1/1;
+            display: block;
+            border-radius: 22px;
+            background: white;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.1);
+            touch-action: none;  /* 禁止触摸滚动 */
+            cursor: crosshair;
+        }
+
+        /* 底部说明 */
+        .footer {
+            margin-top: 28px;
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px -6px rgba(0,0,0,0.1);
+        }
+        .footer p:first-child {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c4b5c;
+        }
+        .note {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #6c5b4b;
+            background: #fdf1e0;
+            padding: 12px;
+            border-radius: 20px;
+            word-break: break-word;
+        }
+        code {
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+
+        /* 针对移动端进一步优化 */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            .card {
+                padding: 18px;
+            }
+            h1 {
+                font-size: 1.6rem;
+            }
+            .header-right span {
+                font-size: 1.6rem;
+            }
+            .char-btn {
+                font-size: 1.6rem;
+                padding: 12px 0;
+                min-height: 68px;
+            }
+            .toolbar {
+                gap: 10px;
+            }
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            .group-header {
+                padding: 12px 16px;
+                min-height: 48px;
+            }
+            .group-title {
+                font-size: 1rem;
+            }
+            .stats {
+                font-size: 0.75rem;
+                padding: 8px 12px;
+            }
+            .tip-banner {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* 极小屏幕下调整 */
+        @media (max-width: 480px) {
+            .char-grid {
+                gap: 8px;
+            }
+            .char-btn {
+                font-size: 1.4rem;
+                min-height: 60px;
+                border-radius: 24px;
+            }
+            .toolbar {
+                justify-content: space-between;
+            }
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                min-width: 60px;
+            }
+            .group-container {
+                max-height: 45vh;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <!-- 头部 -->
+    <div class="header-card">
+        <div class="header-tag">中文笔顺动画 + 手写练习</div>
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+            <div>
+                <h1>小学一年级华文生字练习 ✨</h1>
+                <p class="header-sub">点击单元展开字卡 → 选字 → 看动画 → 手写练习</p>
+            </div>
+            <div class="header-right">
+                当前学习：<span id="currentCharDisplay">蓝</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 三列布局 -->
+    <div class="three-grid">
+        <!-- 左侧字卡列 - 可折叠单元 -->
+        <div class="card char-sidebar">
+            <div class="section-tag" style="display: inline-block; padding: 4px 16px; border-radius: 40px; font-weight: 600; font-size: 0.8rem;">📚 生字表</div>
+            <h2 style="margin-top: 12px; font-size: 1.4rem; font-weight: 700; color: #1e293b;">按单元分组</h2>
+            <p style="margin: 6px 0 12px; color: #64748b; font-size: 0.85rem;">👉 点击单元标题展开/收起</p>
+            <div class="group-container" id="groupContainer"></div>
+        </div>
+
+        <!-- 中间GIF卡片 -->
+        <div class="card gif-card">
+            <div class="section-tag" style="display: inline-block; padding: 4px 16px; border-radius: 40px; font-weight: 600; font-size: 0.8rem;">🎬 笔顺动画</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px;">
+                <div>
+                    <h2 style="font-size: 1.8rem; font-weight: 700;" id="gifCharTitle">蓝</h2>
+                    <p style="color: #64748b; font-size: 0.85rem;">观察笔顺，记住顺序</p>
+                </div>
+                <div style="background: #f1f5f9; border-radius: 20px; padding: 8px 20px; font-size: 2.2rem; font-weight: 800; color: #334155;" id="gifCharLarge">蓝</div>
+            </div>
+
+            <div class="gif-display">
+                <div class="gif-box" id="gifBox">
+                    <img src="./lan2.gif" alt="蓝 笔顺" id="gifImg" style="display: block;">
+                    <div class="fallback-box" id="gifFallback" style="display: none;">
+                        <div class="fallback-char" id="fallbackChar">蓝</div>
+                        <p style="margin-top: 8px;">📁 GIF文件未找到</p>
+                        <p style="color: #94a3b8; font-size: 0.7rem;" id="fallbackPath"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-banner">
+                ✏️ 一边看动画，一边观察每一笔的走向，然后在右边田字格里模仿。
+            </div>
+        </div>
+
+        <!-- 右侧田字格画板 -->
+        <div class="card board-card">
+            <div class="section-tag" style="display: inline-block; padding: 4px 16px; border-radius: 40px; font-weight: 600; font-size: 0.8rem;">✍️ 手写练习</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+                <div>
+                    <h2 style="font-size: 1.6rem; font-weight: 700;" id="practiceCharTitle">练习写“蓝”</h2>
+                    <p style="color: #64748b; font-size: 0.8rem;">手指或触控笔直接书写</p>
+                </div>
+                <div class="stats" id="strokeCountDisplay">笔画：0</div>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn btn-primary" id="clearBtn">🗑️ 清空</button>
+                <button class="btn" id="thinBtn" data-width="6">细笔</button>
+                <button class="btn btn-active" id="mediumBtn" data-width="12">中笔</button>
+                <button class="btn" id="thickBtn" data-width="20">粗笔</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="practiceCanvas" width="800" height="800"></canvas>
+            </div>
+
+            <div class="tip-banner" style="margin-top: 16px;">
+                💡 提示：一笔一划跟着写，写错了按「清空」重新来。记得先看左边动画哦！
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+        <p>🌈 边看边写 · 轻松学汉字</p>
+        <div class="note">
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 汉字分组（按单元） ----------
+        const groups = [
+            { name: "第一单元", chars: "蓝天太阳小鸟上学读书写字了花跟我招手一起走到校门口得早跳来去在树枝做操朋友跑草地".split('') },
+            { name: "第二单元", chars: "课识会儿歌故事习长知笔画要好眼心也顺错不".split('') },
+            { name: "第三单元", chars: "开爸妈笑着回哥姐全家的声星那么多这颗中间是三靠样近亲明".split('') }
+        ];
+
+        // ---------- GIF路径映射 ----------
+        const charGifMap = {
+            "蓝": "./lan2.gif", "天": "./tian1.gif", "太": "./tai4.gif", "阳": "./yang2.gif",
+            "小": "./xiao3.gif", "鸟": "./niao3.gif", "上": "./shang4.gif", "学": "./xue2.gif",
+            "读": "./du2.gif", "书": "./shu1.gif", "写": "./xie3.gif", "字": "./zi4.gif",
+            "了": "./le5.gif", "花": "./hua1.gif", "跟": "./gen1.gif", "我": "./wo3.gif",
+            "招": "./zhao1.gif", "手": "./shou3.gif", "一": "./yi1.gif", "起": "./qi3.gif",
+            "走": "./zou3.gif", "到": "./dao4.gif", "校": "./xiao4.gif", "门": "./men2.gif",
+            "口": "./kou3.gif", "得": "./de2.gif", "早": "./zao3.gif", "跳": "./tiao4.gif",
+            "来": "./lai2.gif", "去": "./qu4.gif", "在": "./zai4.gif", "树": "./shu4.gif",
+            "枝": "./zhi1.gif", "做": "./zuo4.gif", "操": "./cao1.gif", "朋": "./peng2.gif",
+            "友": "./you3.gif", "跑": "./pao3.gif", "草": "./cao3.gif", "地": "./di4.gif",
+            "课": "./ke4.gif", "识": "./shi2.gif", "会": "./hui4.gif", "儿": "./er2.gif",
+            "歌": "./ge1.gif", "故": "./gu4.gif", "事": "./shi4.gif", "习": "./xi2.gif",
+            "长": "./zhang3.gif", "知": "./zhi11.gif", "笔": "./bi3.gif", "画": "./hua4.gif",
+            "要": "./yao4.gif", "好": "./hao3.gif", "眼": "./yan3.gif", "心": "./xin1.gif",
+            "也": "./ye3.gif", "顺": "./shun4.gif", "错": "./cuo4.gif", "不": "./bu4.gif",
+            "开": "./kai1.gif", "爸": "./ba4.gif", "妈": "./ma1.gif", "笑": "./xiao41.gif",
+            "着": "./zhe5.gif", "回": "./hui2.gif", "哥": "./ge11.gif", "姐": "./jie3.gif",
+            "全": "./quan2.gif", "家": "./jia1.gif", "的": "./de5.gif", "声": "./sheng1.gif",
+            "星": "./xing1.gif", "那": "./na4.gif", "么": "./me5.gif", "多": "./duo1.gif",
+            "这": "./zhe4.gif", "颗": "./ke1.gif", "中": "./zhong1.gif", "间": "./jian1.gif",
+            "是": "./shi41.gif", "三": "./san1.gif", "靠": "./kao4.gif", "样": "./yang4.gif",
+            "近": "./jin4.gif", "亲": "./qin1.gif", "明": "./ming2.gif"
+        };
+
+        // 收集所有汉字（去重）
+        const allChars = [];
+        groups.forEach(group => {
+            group.chars.forEach(char => {
+                if (!allChars.find(c => c.char === char)) {
+                    allChars.push({ char, gif: charGifMap[char] || `./${char}.gif` });
+                }
+            });
+        });
+
+        let selectedChar = allChars[0];
+
+        // DOM 元素
+        const groupContainer = document.getElementById('groupContainer');
+        const currentCharDisplay = document.getElementById('currentCharDisplay');
+        const gifCharTitle = document.getElementById('gifCharTitle');
+        const gifCharLarge = document.getElementById('gifCharLarge');
+        const gifImg = document.getElementById('gifImg');
+        const gifFallback = document.getElementById('gifFallback');
+        const fallbackChar = document.getElementById('fallbackChar');
+        const fallbackPath = document.getElementById('fallbackPath');
+        const practiceCharTitle = document.getElementById('practiceCharTitle');
+        const strokeSpan = document.getElementById('strokeCountDisplay');
+
+        // 画板元素
+        const canvas = document.getElementById('practiceCanvas');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('clearBtn');
+        const thinBtn = document.getElementById('thinBtn');
+        const mediumBtn = document.getElementById('mediumBtn');
+        const thickBtn = document.getElementById('thickBtn');
+
+        let lineWidth = 12;
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        let strokeCount = 0;
+
+        // ---------- 绘制田字格 (优化清除和网格) ----------
+        function drawGrid() {
+            const w = 800, h = 800;
+            ctx.clearRect(0, 0, w, h);
+            ctx.save();
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 4;
+            ctx.setLineDash([]);
+            ctx.strokeRect(10, 10, w - 20, h - 20);
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 8]);
+            ctx.beginPath();
+            ctx.moveTo(w / 2, 10);
+            ctx.lineTo(w / 2, h - 10);
+            ctx.moveTo(10, h / 2);
+            ctx.lineTo(w - 10, h / 2);
+            ctx.moveTo(20, 20);
+            ctx.lineTo(w - 20, h - 20);
+            ctx.moveTo(w - 20, 20);
+            ctx.lineTo(20, h - 20);
+            ctx.stroke();
+            ctx.restore();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#0f172a';
+            // 轻微阴影保留，不影响清除操作
+            ctx.shadowColor = '#6b5a4b';
+            ctx.shadowBlur = 6;
+        }
+
+        // 强化清空功能，确保重置所有状态并刷新画板
+        function clearCanvas() {
+            drawGrid();                 // 重绘网格，清空所有笔迹
+            strokeCount = 0;
+            strokeSpan.innerText = `笔画：${strokeCount}`;
+            isDrawing = false;         // 防止清空后意外连线
+            // 确保画布阴影和绘图状态稳定
+            ctx.shadowColor = '#6b5a4b';
+            ctx.shadowBlur = 6;
+            ctx.strokeStyle = '#0f172a';
+        }
+
+        // 初始化网格
+        drawGrid();
+
+        // 获取触摸/鼠标坐标 (适配移动端)
+        function getCanvasCoords(event) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (event.touches) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+            let x = (clientX - rect.left) * scaleX;
+            let y = (clientY - rect.top) * scaleY;
+            x = Math.min(Math.max(x, 0), canvas.width);
+            y = Math.min(Math.max(y, 0), canvas.height);
+            return { x, y };
+        }
+
+        function startDrawing(event) {
+            event.preventDefault();
+            const { x, y } = getCanvasCoords(event);
+            isDrawing = true;
+            lastX = x;
+            lastY = y;
+            ctx.save();
+            ctx.fillStyle = "#0f172a";
+            ctx.shadowColor = "#6b5a4b";
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(x, y, lineWidth / 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+            strokeCount++;
+            strokeSpan.innerText = `笔画：${strokeCount}`;
+        }
+
+        function draw(event) {
+            if (!isDrawing) return;
+            event.preventDefault();
+            const { x, y } = getCanvasCoords(event);
+            if (Math.abs(x - lastX) < 0.5 && Math.abs(y - lastY) < 0.5) return;
+            ctx.save();
+            ctx.strokeStyle = "#0f172a";
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.shadowColor = "#6b5a4b";
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.restore();
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing(event) {
+            if (event) event.preventDefault();
+            isDrawing = false;
+        }
+
+        // 移动端 & PC 事件绑定 (增强触摸响应)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        // 清空按钮：同时支持click和touchstart，确保移动端立即响应且无延迟
+        function handleClear(e) {
+            if (e) e.preventDefault();
+            clearCanvas();
+        }
+        clearBtn.addEventListener('click', handleClear);
+        clearBtn.addEventListener('touchstart', handleClear, { passive: false });
+
+        // 笔宽切换
+        function setActiveWidthButton(width) {
+            [thinBtn, mediumBtn, thickBtn].forEach(btn => btn.classList.remove('btn-active'));
+            if (width === 6) thinBtn.classList.add('btn-active');
+            else if (width === 12) mediumBtn.classList.add('btn-active');
+            else if (width === 20) thickBtn.classList.add('btn-active');
+        }
+        thinBtn.addEventListener('click', () => { lineWidth = 6; setActiveWidthButton(6); });
+        mediumBtn.addEventListener('click', () => { lineWidth = 12; setActiveWidthButton(12); });
+        thickBtn.addEventListener('click', () => { lineWidth = 20; setActiveWidthButton(20); });
+        // 移动端触摸支持笔宽切换
+        [thinBtn, mediumBtn, thickBtn].forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const width = parseInt(btn.getAttribute('data-width'), 10);
+                if (!isNaN(width)) {
+                    lineWidth = width;
+                    setActiveWidthButton(width);
+                }
+            }, { passive: false });
+        });
+
+        // ---------- 渲染左侧分组字卡 (增强折叠可靠性) ----------
+        function renderGroups() {
+            groupContainer.innerHTML = '';
+            groups.forEach(group => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'group';
+                const header = document.createElement('div');
+                header.className = 'group-header';
+                header.innerHTML = `<span class="group-title">${group.name}</span><span class="group-icon">▶</span>`;
+                
+                // 统一的折叠/展开逻辑 (同时支持触摸和鼠标，避免冲突)
+                const toggleExpand = (e) => {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    groupDiv.classList.toggle('expanded');
+                };
+                // 移动端: 使用 touchstart 获得即时响应，并阻止滚动干扰
+                header.addEventListener('touchstart', toggleExpand, { passive: false });
+                // PC端: 保留click兼容
+                header.addEventListener('click', toggleExpand);
+                
+                groupDiv.appendChild(header);
+                const grid = document.createElement('div');
+                grid.className = 'char-grid';
+                group.chars.forEach(char => {
+                    const btn = document.createElement('div');
+                    btn.className = `char-btn ${char === selectedChar.char ? 'active' : ''}`;
+                    btn.textContent = char;
+                    btn.dataset.char = char;
+                    // 汉字选择逻辑 (同时优化触摸)
+                    const selectHandler = (e) => {
+                        if (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                        const charObj = allChars.find(c => c.char === char);
+                        if (charObj) selectCharacter(charObj);
+                    };
+                    btn.addEventListener('click', selectHandler);
+                    btn.addEventListener('touchstart', selectHandler, { passive: false });
+                    grid.appendChild(btn);
+                });
+                groupDiv.appendChild(grid);
+                groupContainer.appendChild(groupDiv);
+            });
+        }
+
+        // 切换选中汉字，更新界面和画板
+        function selectCharacter(item) {
+            if (item.char === selectedChar.char) return;
+            selectedChar = item;
+            // 更新所有按钮激活样式
+            document.querySelectorAll('.char-btn').forEach(btn => {
+                if (btn.dataset.char === item.char) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            currentCharDisplay.innerText = item.char;
+            gifCharTitle.innerText = item.char;
+            gifCharLarge.innerText = item.char;
+            gifImg.src = item.gif;
+            gifImg.style.display = 'block';
+            gifFallback.style.display = 'none';
+            fallbackChar.innerText = item.char;
+            fallbackPath.innerText = item.gif;
+            practiceCharTitle.innerText = `练习写“${item.char}”`;
+            clearCanvas();   // 切换汉字时自动清空画板
+        }
+
+        // GIF加载失败时显示友好提示
+        gifImg.addEventListener('error', function() {
+            gifImg.style.display = 'none';
+            gifFallback.style.display = 'flex';
+        });
+
+        // 初始化默认汉字与分组
+        selectCharacter(selectedChar);
+        renderGroups();
+
+        // 防止整个页面在触摸canvas时滚动 (加强)
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.target === canvas || canvas.contains(e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 全局清理绘图状态
+        document.addEventListener('mouseup', stopDrawing);
+        document.addEventListener('touchend', stopDrawing);
+    })();
+</script>
+</body>
+</html>
